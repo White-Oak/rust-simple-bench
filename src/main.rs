@@ -3,6 +3,9 @@ extern crate time;
 use time::precise_time_ns;
 use std::thread;
 use std::mem::size_of;
+use std::io::*;
+use std::fs::OpenOptions;
+use std::path::Path;
 
 fn main() {
     const W: i32 = 25600;
@@ -20,7 +23,20 @@ fn main() {
             }
             let total = precise_time_ns() - start;
             println!("{}", total / 1000 / 1000);
-            println!("{}", v[(W+1) as usize]);
+            write_to_null(v[(W+1) as usize]);
         }).unwrap();
     child.join();
+}
+
+fn write_to_null(i :i32) {
+    let path = Path::new("/dev/null");
+    let mut options = OpenOptions::new();
+    options.write(true).append(true);
+            
+    let file = match options.open(path) {
+        Ok(file) => file,
+        Err(..)  => panic!("room"),
+    };
+    let mut buffer = BufWriter::new(&file);
+    write!(buffer, "{}", i);
 }
